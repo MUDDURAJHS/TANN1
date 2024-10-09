@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #login-container {
+            display: none;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #inventory-container {
+            display: none;
+        }
+        .login-form {
+            width: 300px;
+            margin: 0 auto;
+        }
+        .login-form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login Screen -->
+    <div id="login-container">
+        <h1>Login</h1>
+        <div class="login-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" placeholder="Enter Username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="Enter Password" required>
+            <button onclick="login()">Login</button>
+            <p class="error" id="login-error" style="display:none;">Invalid Username or Password</p>
+        </div>
+    </div>
+
+    <!-- Inventory Management System -->
+    <div id="inventory-container">
+        <h1>Inventory Management System</h1>
+
+        <!-- Form to receive new items -->
+        <form id="receive-form">
+            <h2>Receive Items</h2>
+            <label for="receiveDate">Date:</label>
+            <input type="date" id="receiveDate" required>
+
+            <label for="supplierInvoice">Supplier Invoice Number:</label>
+            <input type="text" id="supplierInvoice" required>
+
+            <label for="boschInvoice">Bosch Invoice Number:</label>
+            <input type="text" id="boschInvoice" required>
+
+            <label for="partType">Part Type:</label>
+            <select id="partType" required>
+                <option value="Spark Plug">Spark Plug</option>
+                <option value="Singles">Singles</option>
+                <option value="Tinners">Tinners</option>
+                <option value="Sleeves">Sleeves</option>
+                <option value="Secondary Sleeves">Secondary Sleeves</option>
+                <option value="Carton Box">Carton Box</option>
+            </select>
+
+            <label for="type">Type:</label>
+            <input type="text" id="type" required>
+
+            <label for="mfd">MFD (Month & Year):</label>
+            <input type="month" id="mfd">
+
+            <label for="index">Index:</label>
+            <input type="text" id="index">
+
+            <label for="partNumber">Part Number:</label>
+            <input type="text" id="partNumber" required>
+
+            <label for="receivedQuantity">Received Quantity:</label>
+            <input type="number" id="receivedQuantity" value="0" required>
+
+            <button type="submit">Add Item</button>
+        </form>
+
+        <!-- Form to dispatch items -->
+        <form id="dispatch-form">
+            <h2>Dispatch Items</h2>
+            <label for="dispatchDate">Date:</label>
+            <input type="date" id="dispatchDate" required>
+
+            <label for="dispatchInvoice">Invoice Number:</label>
+            <input type="text" id="dispatchInvoice" required>
+
+            <label for="dispatchPartNumber">Part Number:</label>
+            <input type="text" id="dispatchPartNumber" required oninput="updatePartType()">
+
+            <label for="dispatchPartType">Part Type:</label>
+            <select id="dispatchPartType" required>
+                <option value="Spark Plug">Spark Plug</option>
+                <option value="Singles">Singles</option>
+                <option value="Tinners">Tinners</option>
+                <option value="Sleeves">Sleeves</option>
+                <option value="Secondary Sleeves">Secondary Sleeves</option>
+                <option value="Carton Box">Carton Box</option>
+            </select>
+
+            <label for="dispatchType">Type:</label>
+            <input type="text" id="dispatchType" required>
+
+            <label for="dispatchQuantity">Dispatch Quantity:</label>
+            <input type="number" id="dispatchQuantity" value="0" required>
+
+            <button type="submit">Dispatch Item</button>
+        </form>
+
+        <!-- Download Buttons -->
+        <button id="download-inventory-btn">Download Inventory as CSV</button>
+        <button id="download-outward-btn">Download Outward Records as CSV</button>
+        <button id="download-livestock-btn">Download Live Stock Report as CSV</button>
+
+        <!-- Inventory Table -->
+        <h2>Inventory</h2>
+        <table id="inventory-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Supplier Invoice No</th>
+                    <th>Bosch Invoice No</th>
+                    <th>Part Type</th>
+                    <th>Type</th>
+                    <th>Part Number</th>
+                    <th>Index</th>
+                    <th>MFD</th>
+                    <th>Received Quantity</th>
+                    <th>Dispatched Quantity</th>
+                    <th>Status</th>
+                    <th>Current Stock</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- Outward Records Table -->
+        <h2>Outward Records</h2>
+        <table id="outward-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Invoice No</th>
+                    <th>Part Type</th>
+                    <th>Type</th>
+                    <th>Part Number</th>
+                    <th>Index</th>
+                    <th>MFD</th>
+                    <th>Dispatch Quantity</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- Live Stock Report Table -->
+        <h2>Live Stock Report</h2>
+        <table id="live-stock-table">
+            <thead>
+                <tr>
+                    <th>Part Number</th>
+                    <th>Part Type</th>
+                    <th>Type</th>
+                    <th>Index</th>
+                    <th>Current Stock</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const validUsername = "TANN";
+        const validPassword = "Tann@123";
+
+        // Show login screen initially
+        document.getElementById('login-container').style.display = 'block';
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginError = document.getElementById('login-error');
+
+            // Check credentials
+            if (username === validUsername && password === validPassword) {
+                // Hide login and show inventory management system
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('inventory-container').style.display = 'block';
+            } else {
+                // Show error message
+                loginError.style.display = 'block';
+            }
+        }
+
+        // Part number mapping for child parts
+        const partMapping = {
+            "F002 G40 533": {
+                "Singles": "6000.414.738",
+                "Tinners": "6000.414.739",
+                "Sleeves": "6000.723.283",
+                "Secondary Sleeves": "6000.175.461",
+                "Carton Box": "6000.175.346"
+            },
+            "F002 G40 087": {
+                "Singles": "6000.163.791",
+                "Tinners": "6000.163.796",
+                "Sleeves": "6000.723.280",
+                "Secondary Sleeves": "6000.175.461",
+                "Carton Box": "6000.175.346"
+            },
+            "F002 G40 329": {
+                "Singles": "6000.163.789",
+                "Tinners": "6000.163.794",
+                "Sleeves": "6000.723.280",
+                "Secondary Sleeves": "6000.175.461",
+                "Carton Box": "6000.175.346"
+            },
+            "F002 G40 127": {
+                "Singles": "6000.167.335",
+                "Tinners": "6000.167.351",
+                "Sleeves": "6000.723.283",
+                "Secondary Sleeves": "6000.175.461",
+                "Carton Box": "6000.175.346"
+            },
+            // Add more part mappings here as necessary
+        };
+
+        // Function to debit child parts based on the main part debited
+        function debitChildParts(mainPartNumber, mainPartQuantity) {
+            const mapping = partMapping[mainPartNumber];
+            
+            if (mapping) {
+                const singlesPartNumber = mapping["Singles"];
+                const tinnersPartNumber = mapping["Tinners"];
+                const sleevesPartNumber = mapping["Sleeves"];
+                const secondarySleevesPartNumber = mapping["Secondary Sleeves"];
+                const cartonBoxPartNumber = mapping["Carton Box"];
+
+                // Define the ratios based on your requirement
+                const singlesQuantity = mainPartQuantity; // 1:1 with Spark Plug
+                const tinnersQuantity = mainPartQuantity / 10; // Spark Plug / 10
+                const sleevesQuantity = singlesQuantity / 1; // Same as singles
+                const secondarySleevesQuantity = mainPartQuantity / 500; // Spark Plug / 500
+                const cartonBoxQuantity = secondarySleevesQuantity; // Same as secondary sleeves
+
+                // Now debit each child part accordingly
+                debitInventory(singlesPartNumber, singlesQuantity);
+                debitInventory(tinnersPartNumber, tinnersQuantity);
+                debitInventory(sleevesPartNumber, sleevesQuantity);
+                debitInventory(secondarySleevesPartNumber, secondarySleevesQuantity);
+                debitInventory(cartonBoxPartNumber, cartonBoxQuantity);
+            }
+        }
+
+        // Function to handle debiting of specific parts from inventory
+        function debitInventory(partNumber, quantity) {
+            const inventoryItem = inventory.find(item => item.partNumber === partNumber);
+            if (inventoryItem && inventoryItem.receivedQuantity >= inventoryItem.dispatchedQuantity + quantity) {
+                inventoryItem.dispatchedQuantity += quantity;
+                updateInventoryTable();
+            } else {
+                alert("Not enough stock available for part number " + partNumber);
+            }
+        }
+
+        // Inventory System JS Code
+        const inventory = [];
+        const outwardRecords = [];
+
+        const receiveForm = document.getElementById('receive-form');
+        const dispatchForm = document.getElementById('dispatch-form');
+
+        receiveForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                date: document.getElementById('receiveDate').value,
+                supplierInvoice: document.getElementById('supplierInvoice').value,
+                boschInvoice: document.getElementById('boschInvoice').value,
+                partType: document.getElementById('partType').value,
+                type: document.getElementById('type').value,
+                mfd: document.getElementById('mfd').value,
+                index: document.getElementById('index').value,
+                partNumber: document.getElementById('partNumber').value,
+                receivedQuantity: parseInt(document.getElementById('receivedQuantity').value),
+                dispatchedQuantity: 0,
+            };
+            inventory.push(data);
+            updateInventoryTable();
+            receiveForm.reset();
+        });
+
+        dispatchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const partNumber = document.getElementById('dispatchPartNumber').value;
+            const dispatchQuantity = parseInt(document.getElementById('dispatchQuantity').value);
+            
+            if (document.getElementById('dispatchPartType').value === 'Spark Plug') {
+                debitChildParts(partNumber, dispatchQuantity);
+            }
+
+            const dispatchData = {
+                date: document.getElementById('dispatchDate').value,
+                invoice: document.getElementById('dispatchInvoice').value,
+                partType: document.getElementById('dispatchPartType').value,
+                type: document.getElementById('dispatchType').value,
+                partNumber: partNumber,
+                index: document.getElementById('dispatchPartType').value,
+                mfd: '',
+                dispatchQuantity: dispatchQuantity,
+            };
+            const inventoryItem = inventory.find(item => item.partNumber === partNumber);
+            if (inventoryItem && inventoryItem.receivedQuantity >= inventoryItem.dispatchedQuantity + dispatchQuantity) {
+                inventoryItem.dispatchedQuantity += dispatchQuantity;
+                outwardRecords.push(dispatchData);
+                updateInventoryTable();
+                updateOutwardTable();
+                dispatchForm.reset();
+            } else {
+                alert("Not enough stock available for dispatch.");
+            }
+        });
+
+        function updateInventoryTable() {
+            const tbody = document.querySelector('#inventory-table tbody');
+            tbody.innerHTML = '';
+            inventory.forEach(item => {
+                const row = document.createElement('tr');
+                const currentStock = item.receivedQuantity - item.dispatchedQuantity;
+                row.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${item.supplierInvoice}</td>
+                    <td>${item.boschInvoice}</td>
+                    <td>${item.partType}</td>
+                    <td>${item.type}</td>
+                    <td>${item.partNumber}</td>
+                    <td>${item.index}</td>
+                    <td>${item.mfd}</td>
+                    <td>${item.receivedQuantity}</td>
+                    <td>${item.dispatchedQuantity}</td>
+                    <td>${currentStock < 0 ? 'Out of Stock' : 'In Stock'}</td>
+                    <td>${currentStock}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateOutwardTable() {
+            const tbody = document.querySelector('#outward-table tbody');
+            tbody.innerHTML = '';
+            outwardRecords.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.invoice}</td>
+                    <td>${record.partType}</td>
+                    <td>${record.type}</td>
+                    <td>${record.partNumber}</td>
+                    <td>${record.index}</td>
+                    <td>${record.mfd}</td>
+                    <td>${record.dispatchQuantity}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updatePartType() {
+            const partNumber = document.getElementById('dispatchPartNumber').value;
+            const inventoryItem = inventory.find(item => item.partNumber === partNumber);
+            if (inventoryItem) {
+                document.getElementById('dispatchPartType').value = inventoryItem.partType;
+                document.getElementById('dispatchType').value = inventoryItem.type;
+            } else {
+                document.getElementById('dispatchPartType').value = '';
+                document.getElementById('dispatchType').value = '';
+            }
+        }
+
+        // CSV Download Functionality
+        function convertToCSV(data) {
+            const keys = Object.keys(data[0]);
+            const csvRows = [];
+            // Add header row
+            csvRows.push(keys.join(','));
+            // Add data rows
+            for (const row of data) {
+                csvRows.push(keys.map(key => JSON.stringify(row[key], (key, value) => value === null ? '' : value)).join(','));
+            }
+            return csvRows.join('\n');
+        }
+
+        // Download function for inventory
+        document.getElementById('download-inventory-btn').addEventListener('click', function() {
+            const csvData = convertToCSV(inventory);
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'inventory.csv';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
+        // Download function for outward records
+        document.getElementById('download-outward-btn').addEventListener('click', function() {
+            const csvData = convertToCSV(outwardRecords);
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'outward_records.csv';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
+        // Download function for live stock report
+        document.getElementById('download-livestock-btn').addEventListener('click', function() {
+            const stockData = [];
+            const stockMap = {};
+
+            inventory.forEach(item => {
+                if (!stockMap[item.partNumber]) {
+                    stockMap[item.partNumber] = { partType: item.partType, type: item.type, index: item.index, stock: 0 };
+                }
+                stockMap[item.partNumber].stock += (item.receivedQuantity - item.dispatchedQuantity);
+            });
+
+            Object.keys(stockMap).forEach(partNumber => {
+                stockData.push({
+                    partNumber,
+                    partType: stockMap[partNumber].partType,
+                    type: stockMap[partNumber].type,
+                    index: stockMap[partNumber].index,
+                    currentStock: stockMap[partNumber].stock
+                });
+            });
+
+            const csvData = convertToCSV(stockData);
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'live_stock_report.csv';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+    </script>
+</body>
+</html>
